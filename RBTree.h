@@ -3,6 +3,13 @@
 
 using ValueType = double;
 using KeyType = std::string;
+
+enum class Color
+{
+	Red,
+	Black
+};
+
 class RBTree
 {
 
@@ -14,7 +21,7 @@ public:
 		KeyType key;
 		Node* left;
 		Node* right;
-		bool Color; // 0 - red, 1 - black;
+		Color RB; // 0 - red, 1 - black; 
 	};
 
 	RBTree();
@@ -31,7 +38,7 @@ public:
 	void DeleteFirstKey(KeyType key);
 	void DeleteKey(KeyType Key);
 
-	ValueType Find(KeyType Key);
+	size_t Find(KeyType Key);
 
 	Node* FindNodeMax(KeyType Key);
 	Node* FindNodeMin(KeyType Key);
@@ -44,7 +51,7 @@ public:
 	bool IsEmpty();
 private:
 
-	Node _head;
+	Node* _head;
 	size_t _size;
 };
 
