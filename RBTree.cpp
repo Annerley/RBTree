@@ -31,6 +31,7 @@ void RBTree::AddPair(KeyType key, ValueType value, Node* node) // now its for bs
 			AddPair(key, value, node->right);
 		}
 	}
+	//rebalance
 
 }
 
