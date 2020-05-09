@@ -17,12 +17,20 @@ public:
 	struct Node 
 
 	{
+
+		Node(const ValueType& value, const KeyType& key, bool dir);
+		~Node();
+
+
+
 		ValueType value;
 		KeyType key;
 		Node* left;
 		Node* right;
 		Color RB; // 0 - red, 1 - black; 
 	};
+
+
 
 	RBTree();
 	RBTree(const RBTree& copyTree);
@@ -33,7 +41,8 @@ public:
 
 	~RBTree();
 
-	void AddLeaf(KeyType key, ValueType value);
+	void AddPair(KeyType key, ValueType value, Node node);
+	AddTo(Node node, ValueType value, KeyType key);
 
 	void DeleteFirstKey(KeyType key);
 	void DeleteKey(KeyType Key);
