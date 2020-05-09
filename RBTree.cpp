@@ -6,36 +6,47 @@ RBTree::RBTree()
 
 }
 
-void RBTree::AddPair(KeyType key, ValueType value, Node* node)
+void RBTree::AddPair(KeyType key, ValueType value, Node* node) // now its for bst will be fixed soon
 {
 	
 	if (node->key >= key)
 	{
-		if (node->left == 0)
+		if (node->left == nullptr)
 		{
-			node->left = new Node(value, key, 0);
+			node->left = new Node(value, key, 0, node->left);
 		}
 		else
 		{
-			AddPair();
+			AddPair(key, value, node->left);
+		}
+	}
+	else
+	{
+		if (node->right == nullptr)
+		{
+			node->right = new Node(value, key, 1, node->right);
+		}
+		else
+		{
+			AddPair(key, value, node->right);
 		}
 	}
 
 }
 
 
-RBTree::Node::Node(const ValueType& value, const KeyType& key, bool dir)
+RBTree::Node::Node(const ValueType& value, const KeyType& key, bool dir, Node* node)
 {
 	this->value = value;
 	this->key = key;
 	if (dir == 0)
 	{
-		this->left = left;
+		this->left = node;
 		this->right = nullptr;
 	}
 	if (dir == 1)
 	{
 		this->left = nullptr;
-		this->right = right;
+		this->right = node;
 	}
 }
