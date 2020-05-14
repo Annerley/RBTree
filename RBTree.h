@@ -93,7 +93,7 @@ inline RBTree<KeyType, ValueType>::RBTree()
 template<typename KeyType, typename ValueType>
 inline RBTree<KeyType, ValueType>::RBTree(ValueType value, KeyType key)
 {
-	_head = new Node(value, key, nullptr);
+	_head = new Node(value, key, nullptr, Color::Black);
 }
 
 
@@ -154,21 +154,34 @@ inline void RBTree<KeyType, ValueType>::Add(ValueType value, KeyType key)
 template<typename KeyType, typename ValueType>
 inline void RBTree<KeyType, ValueType>::TestPrint()
 {
+	/*cout << _head->parent->value << " " << _head->parent->key << " ";
+	Print_Color(_head->parent);
+	cout << endl;
+
+	cout << _head->parent->right->value << " " << _head->parent->right->key << " ";
+	Print_Color(_head->parent->right);
+	cout << endl;*/
+
 	cout << _head->value << " " << _head->key << " ";
 	Print_Color(_head);
 	cout << endl;
+
 	cout << _head->left->value << " " << _head->left->key << " ";
 	Print_Color(_head->left);
 	cout << endl;
+
 	cout << _head->right->value << " " << _head->right->key << " ";
 	Print_Color(_head->right);
+	cout << endl;/*
+	cout << _head->left->right->value << " " << _head->left->right->key << " ";
+	Print_Color(_head->left->right);
 	cout << endl;
-	cout << _head->right->right->value << " " << _head->right->right->key << " ";
-	Print_Color(_head->right->right);
-	cout << endl;
+	
 	cout << _head->right->left->value << " " << _head->right->left->key << " ";
 	Print_Color(_head->right->left);
 	cout << endl;
+	*/
+	 
 }
 
 
@@ -210,7 +223,7 @@ inline typename RBTree<KeyType, ValueType>::Node* RBTree<KeyType, ValueType>::gr
 template<typename KeyType, typename ValueType>
 inline void RBTree<KeyType, ValueType>::first_add_case(Node* cur)
 {
-	if (cur == _head)
+	if (cur->parent == nullptr)
 	{
 		cur->color = Color::Black;
 	}
@@ -233,7 +246,7 @@ inline void RBTree<KeyType, ValueType>::third_add_case(Node* cur)
 {
 	Node* u = uncle(cur);
 
-		if (u != nullptr && u->color == Color::Red)
+		if ((u != nullptr) && (u->color == Color::Red))
 		{
 			cur->parent->color = Color::Black;
 			u->color = Color::Black;
@@ -250,28 +263,21 @@ inline void RBTree<KeyType, ValueType>::third_add_case(Node* cur)
 
 template<typename KeyType, typename ValueType>
 inline void RBTree<KeyType, ValueType>::fourth_add_case(Node* cur)
-{
-	
-	
-		
-			Node* g = grandpa(cur);
-			
-			Node* p = cur->parent;
+{	
+		Node* g = grandpa(cur);		
+		Node* p = cur->parent;
 
-			if (cur == p->right && p == g->left )
+			if ((cur == cur->parent->right) && (cur->parent == g->left ))
 			{
-				left_rotate(p);
+				left_rotate(cur->parent);
 				cur = cur->left;
 			}
-			else if (cur == p->left && p == g->right)
+			else if ((cur == cur->parent->left) && (cur->parent == g->right))
 			{
-				right_rotate(p);
+				right_rotate(cur->parent);
 				cur = cur->right;
 			}
-			fifth_add_case(cur);
-		
-	
-	
+		fifth_add_case(cur);
 }
 
 template<typename KeyType, typename ValueType>
@@ -280,11 +286,11 @@ inline void RBTree<KeyType, ValueType>::fifth_add_case(Node* cur)
 	Node* g = g = grandpa(cur);
 	cur->parent->color = Color::Black;
 	g->color = Color::Red;
-	if (cur == cur->parent->left && cur->parent == g->left)
+	if ((cur == cur->parent->left) && (cur->parent == g->left))
 	{
 		right_rotate(g);
 	}
-	else
+	else if (cur == cur->parent->right && (cur->parent == g->right))
 	{
 		left_rotate(g);
 	}
@@ -294,8 +300,12 @@ template<typename KeyType, typename ValueType>
 inline void RBTree<KeyType, ValueType>::right_rotate(Node* cur)
 {
 	Node* buf = cur->left;
-
-	buf->parent = cur->parent; 
+	if (cur->parent == nullptr)
+	{
+		_head = buf;
+	}
+	buf->parent = cur->parent;
+	if (buf->parent == _head) _head = buf->parent;
 	if (cur->parent != nullptr) {
 		if (cur->parent->left == cur)
 			cur->parent->left = buf;
@@ -315,8 +325,12 @@ template<typename KeyType, typename ValueType>
 inline void RBTree<KeyType, ValueType>::left_rotate(Node* cur)
 {
 	Node* buf = cur->right;
-
+	if (cur->parent == nullptr)
+	{
+		_head = buf;
+	}
 	buf->parent = cur->parent; 
+
 	if (cur->parent != nullptr) {
 		if (cur->parent->left == cur)
 			cur->parent->left = buf;
