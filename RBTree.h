@@ -67,9 +67,10 @@ public:
 	void fourth_add_case(Node* cur);
 	void fifth_add_case(Node* cur);
 	
-	Node* right_rotate(Node* cur);
-	Node* left_rotate(Node* cur);
+	void right_rotate(Node* cur);
+	void left_rotate(Node* cur);
 
+	void Print_Color(Node* cur);
 	size_t size()
 	{
 		return _size;
@@ -135,7 +136,7 @@ inline void RBTree<KeyType, ValueType>::Add(ValueType value, KeyType key)
 			
 			if (Buf->right == nullptr)
 			{
-				Buf->right= new Node(key, value, parent);
+				Buf->right= new Node(key, value, parent, Color::Red);
 				Buf = Buf->right;
 				_size++;
 				Rebalance(Buf);
@@ -153,10 +154,21 @@ inline void RBTree<KeyType, ValueType>::Add(ValueType value, KeyType key)
 template<typename KeyType, typename ValueType>
 inline void RBTree<KeyType, ValueType>::TestPrint()
 {
-	cout << _head->value << " " << _head->key << " "<<_head->color << endl;
-	cout << _head->left->value << " " << _head->left->key << " " << _head->left->color << endl;
-	cout << _head->right->value << " " << _head->right->key << " " << _head->right->color << endl;
-	cout << _head->right->right->value << " " << _head->right->right->key << " " << _head->right->right->color << endl;
+	cout << _head->value << " " << _head->key << " ";
+	Print_Color(_head);
+	cout << endl;
+	cout << _head->left->value << " " << _head->left->key << " ";
+	Print_Color(_head->left);
+	cout << endl;
+	cout << _head->right->value << " " << _head->right->key << " ";
+	Print_Color(_head->right);
+	cout << endl;
+	cout << _head->right->right->value << " " << _head->right->right->key << " ";
+	Print_Color(_head->right->right);
+	cout << endl;
+	cout << _head->right->left->value << " " << _head->right->left->key << " ";
+	Print_Color(_head->right->left);
+	cout << endl;
 }
 
 
@@ -169,7 +181,7 @@ inline void RBTree<KeyType, ValueType>::Rebalance(Node* cur)
 }
 
 template<typename KeyType, typename ValueType>
-inline RBTree<KeyType, ValueType>::Node* RBTree<KeyType, ValueType>::uncle(Node* cur) const
+inline typename RBTree<KeyType, ValueType>::Node* RBTree<KeyType, ValueType>::uncle(Node* cur) const
 {
 	Node* g = grandpa(cur);
 	if(!g)
@@ -184,7 +196,7 @@ inline RBTree<KeyType, ValueType>::Node* RBTree<KeyType, ValueType>::uncle(Node*
 }
 
 template<typename KeyType, typename ValueType>
-inline Node* RBTree<KeyType, ValueType>::grandpa(Node* cur) const
+inline typename RBTree<KeyType, ValueType>::Node* RBTree<KeyType, ValueType>::grandpa(Node* cur) const
 {
 	if (!cur || !cur->parent)
 	{
@@ -210,25 +222,22 @@ inline void RBTree<KeyType, ValueType>::second_add_case(Node* cur)
 {
 	if (cur->parent->color == Color::Black)
 	{
-		third_add_case(cur);
+		return;
 
 	}
-	else return;
+	else third_add_case(cur);
 }
 
 template<typename KeyType, typename ValueType>
 inline void RBTree<KeyType, ValueType>::third_add_case(Node* cur)
 {
-	Node* u = new Node;
-	u = uncle(cur);
-	if (u && cur->parent->color == Color::Red)
-	{
+	Node* u = uncle(cur);
+
 		if (u != nullptr && u->color == Color::Red)
 		{
 			cur->parent->color = Color::Black;
 			u->color = Color::Black;
-			Node* g = new Node;
-			g = grandpa(cur);
+			Node* g = grandpa(cur);
 			g->color = Color::Red;
 			first_add_case(g);
 		}
@@ -236,67 +245,100 @@ inline void RBTree<KeyType, ValueType>::third_add_case(Node* cur)
 		{
 			fourth_add_case(cur);
 		}
-	}
+
 }
 
 template<typename KeyType, typename ValueType>
 inline void RBTree<KeyType, ValueType>::fourth_add_case(Node* cur)
 {
-	Node* u = new Node;
-	u = uncle(cur);
-	if (u == Color::Black && cur->parent == Color::Red)
-	{
-		Node* g = new Node;
-		g = grandpa(cur);
-		Node* p = new Node;
-		p = cur->parent;
-		if (cur == p->right && p == g->left)
-		{
-			p = left_rotate(p);
-			cur = cur->left;
-		}
-		else if (cur == p->left && p == g->right)
-		{
-			p = right_rotate(p);
-			cur = cur->right;
-		}
-		fifth_add_case(cur);
-	}
+	
+	
+		
+			Node* g = grandpa(cur);
+			
+			Node* p = cur->parent;
+
+			if (cur == p->right && p == g->left )
+			{
+				left_rotate(p);
+				cur = cur->left;
+			}
+			else if (cur == p->left && p == g->right)
+			{
+				right_rotate(p);
+				cur = cur->right;
+			}
+			fifth_add_case(cur);
+		
+	
+	
 }
 
 template<typename KeyType, typename ValueType>
 inline void RBTree<KeyType, ValueType>::fifth_add_case(Node* cur)
 {
-	Node* g = new Node;
-	g = grandpa(cur);
+	Node* g = g = grandpa(cur);
 	cur->parent->color = Color::Black;
 	g->color = Color::Red;
-	if (cur == cur->parent->left && node->parent == g->left)
+	if (cur == cur->parent->left && cur->parent == g->left)
 	{
-		g = right_rotate(g);
+		right_rotate(g);
 	}
 	else
 	{
-		g = left_rotate(g);
+		left_rotate(g);
 	}
 }
 
 template<typename KeyType, typename ValueType>
-inline Node* RBTree<KeyType, ValueType>::right_rotate(Node* cur)
+inline void RBTree<KeyType, ValueType>::right_rotate(Node* cur)
 {
-	Node buf = cur->left;
+	Node* buf = cur->left;
+
+	buf->parent = cur->parent; 
+	if (cur->parent != nullptr) {
+		if (cur->parent->left == cur)
+			cur->parent->left = buf;
+		else
+			cur->parent->right = buf;
+	}
+
 	cur->left = buf->right;
+	if (buf->right != nullptr)
+		buf->right->parent = cur;
+
+	cur->parent = buf;
 	buf->right = cur;
-	return buf;
 }
 
 template<typename KeyType, typename ValueType>
-inline Node* RBTree<KeyType, ValueType>::left_rotate(Node* cur)
+inline void RBTree<KeyType, ValueType>::left_rotate(Node* cur)
 {
-	Node buf = cur->right;
+	Node* buf = cur->right;
+
+	buf->parent = cur->parent; 
+	if (cur->parent != nullptr) {
+		if (cur->parent->left == cur)
+			cur->parent->left = buf;
+		else
+			cur->parent->right = buf;
+	}
+
 	cur->right = buf->left;
+	if (buf->left != nullptr)
+		buf->left->parent = cur;
+
+	cur->parent = buf;
 	buf->left = cur;
-	return buf;
+}
+
+template<typename KeyType, typename ValueType>
+inline void RBTree<KeyType, ValueType>::Print_Color(Node* cur)
+{
+	if (cur->color == Color::Red)
+		std::cout << "Red";
+	else if (cur->color == Color::Black)
+		std::cout << "Black";
 }
 
 
