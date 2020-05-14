@@ -19,7 +19,7 @@ public:
 	struct Node 
 	{	
 		
-		Node(const ValueType& value, const KeyType& key,, Node* node);
+		Node(const ValueType& value, const KeyType& key, Node* node = nullptr);
 	//	~Node();
 
 		ValueType value;
@@ -89,7 +89,7 @@ inline void RBTree<KeyType, ValueType>::AddPair(KeyType key, ValueType value, No
 	{
 		if (node->left == nullptr)
 		{
-			node->left = new Node(value, key, 0, node->left);
+			node->left = new Node(value, key);
 		}
 		else
 		{
@@ -100,7 +100,7 @@ inline void RBTree<KeyType, ValueType>::AddPair(KeyType key, ValueType value, No
 	{
 		if (node->right == nullptr)
 		{
-			node->right = new Node(value, key, 1, node->right);
+			node->right = new Node(value, key);
 		}
 		else
 		{
@@ -115,13 +115,20 @@ inline void RBTree<KeyType, ValueType>::Add(ValueType value, KeyType key)
 {
 	if (_head == nullptr)
 	{
-		Node* newest = new Node(value, this->next);
-		this->next = newest;
+		_head = new Node;
+		this->right = nullptr;
+		this->left = nullptr;
+		this->value = value;
+		this->key = key;
 	}
 	
-	else
+	else if(key < this->key)
 	{
-		AddPair(value, key, _head);
+		AddPair(value, key, this->left);
+	}
+	else if (key >= this->key)
+	{
+		AddPair(value, key, this->right);
 	}
 
 	_size++;
@@ -137,20 +144,12 @@ inline void RBTree<KeyType, ValueType>::TestPrint()
 }
 
 template<typename KeyType, typename ValueType>
-inline RBTree<KeyType, ValueType>::Node::Node(const ValueType& value, const KeyType& key, , Node* node)
+inline RBTree<KeyType, ValueType>::Node::Node(const ValueType& value, const KeyType& key, Node* node)
 {
 	this->value = value;
 	this->key = key;
-	this->RB = Color::Red;
-	if (dir == 0)
-	{
-		this->left = next;
-		this->right = nullptr;
-	}
-	if (dir == 1)
-	{
-		this->left = nullptr;
-		this->right = next;
-	}
+	this->color = Color::Red;
+	this->left = nullptr;
+	this->right = nullptr;
 
 }
