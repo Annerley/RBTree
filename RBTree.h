@@ -19,11 +19,12 @@ public:
 	struct Node 
 	{	
 		
-		Node(const ValueType& value, const KeyType& key, Node* node = nullptr);
+		Node(const ValueType& value, const KeyType& key, Node* parent);
 	//	~Node();
 
 		ValueType value;
 		KeyType key;
+		Node* parent;
 		Node* left;
 		Node* right;
 		Color color; // 0 - red, 1 - black; 
@@ -42,7 +43,7 @@ public:
 	
 	~RBTree();
 	*/
-	void AddPair(KeyType key, ValueType value, Node* node);
+	//void AddPair(KeyType key, ValueType value, Node* node); // now probably useless
 	void Add(ValueType value, KeyType key);
 	/*
 	void DeleteFirstKey(KeyType key);
@@ -77,19 +78,19 @@ inline RBTree<KeyType, ValueType>::RBTree()
 template<typename KeyType, typename ValueType>
 inline RBTree<KeyType, ValueType>::RBTree(ValueType value, KeyType key)
 {
-	_head = new Node(value, key, 0, _head);
+	_head = new Node(value, key, nullptr);
 }
 
 
 
-template<typename KeyType, typename ValueType>
+/*template<typename KeyType, typename ValueType>
 inline void RBTree<KeyType, ValueType>::AddPair(KeyType key, ValueType value, Node* node)
 {
 	if (node->key >= key)
 	{
 		if (node->left == nullptr)
 		{
-			node->left = new Node(value, key);
+			node->left = new Node(value, key, node);
 		}
 		else
 		{
@@ -100,7 +101,7 @@ inline void RBTree<KeyType, ValueType>::AddPair(KeyType key, ValueType value, No
 	{
 		if (node->right == nullptr)
 		{
-			node->right = new Node(value, key);
+			node->right = new Node(value, key, node);
 		}
 		else
 		{
@@ -108,48 +109,85 @@ inline void RBTree<KeyType, ValueType>::AddPair(KeyType key, ValueType value, No
 		}
 	}
 	//rebalance
-}
+}*/
 
 template<typename KeyType, typename ValueType>
 inline void RBTree<KeyType, ValueType>::Add(ValueType value, KeyType key)
 {
 	if (_head == nullptr)
 	{
-		_head = new Node;
-		this->right = nullptr;
-		this->left = nullptr;
-		this->value = value;
-		this->key = key;
+		_head = new Node(value, key, nullptr);
+		return;
 	}
-	
-	else if(key < this->key)
-	{
-		AddPair(value, key, this->left);
-	}
-	else if (key >= this->key)
-	{
-		AddPair(value, key, this->right);
-	}
+	Node* Buf = _head;
+	Node* parent = nullptr;
+	//cout << Buf->value << " " << _head->value;
 
+	while (true)
+	{
+		if (key < Buf->key)
+		{
+			parent = Buf;
+			
+			if (Buf->left == nullptr)
+			{
+				Buf->left = new Node(key, value, parent);
+				Buf = Buf->left;
+				return;
+			}
+			else
+				Buf = Buf->left;
+		}
+		
+
+
+		else if (key >= Buf->key)
+		{
+			parent = Buf;
+			
+			if (Buf->right == nullptr)
+			{
+				Buf->right= new Node(key, value, parent);
+				Buf = Buf->right;
+				return;
+			}
+			else 
+				Buf = Buf->right;
+
+		}
+	
+	}
+/*
+	Buf->value = value;
+	Buf->key = key;
+	Buf->parent = parent;
+	Buf->right = nullptr;
+	Buf->left = nullptr;*/
 	_size++;
+	//rebalance
+	
+
+	
 
 }
 
 template<typename KeyType, typename ValueType>
 inline void RBTree<KeyType, ValueType>::TestPrint()
 {
-	
-	cout << _head->left->value << " " << _head->left->key;
-	cout << _head->right->value << " " << _head->right->key;
+	cout << _head->value << " " << _head->key << endl;
+	cout << _head->left->value << " " << _head->left->key << endl;
+	cout << _head->right->value << " " << _head->right->key << endl;
+	cout << _head->right->right->value << " " << _head->right->right->key << endl;
 }
 
 template<typename KeyType, typename ValueType>
-inline RBTree<KeyType, ValueType>::Node::Node(const ValueType& value, const KeyType& key, Node* node)
+inline RBTree<KeyType, ValueType>::Node::Node(const ValueType& value, const KeyType& key, Node* parent)
 {
 	this->value = value;
 	this->key = key;
 	this->color = Color::Red;
 	this->left = nullptr;
 	this->right = nullptr;
+	this->parent = parent;
 
 }
