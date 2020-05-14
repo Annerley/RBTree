@@ -1,14 +1,11 @@
 ﻿#include "RBTree.h"
 
-RBTree::RBTree()
-{
-	_head = nullptr;
 
-}
 
-void RBTree::AddPair(KeyType key, ValueType value, Node* node) // now its for bst will be fixed soon
+
+/*template<typename KeyType, typename ValueType>
+inline void RBTree<KeyType, ValueType>::AddPair(KeyType key, ValueType value)
 {
-	
 	if (node->key >= key)
 	{
 		if (node->left == nullptr)
@@ -32,14 +29,15 @@ void RBTree::AddPair(KeyType key, ValueType value, Node* node) // now its for bs
 		}
 	}
 	//rebalance
-
 }
+/*
 
-
-RBTree::Node::Node(const ValueType& value, const KeyType& key, bool dir, Node* node)
+template<typename KeyType, typename ValueType>
+inline RBTree<KeyType, ValueType>::Node::Node(const ValueType& value, const KeyType& key, bool dir, Node* node)
 {
 	this->value = value;
 	this->key = key;
+	this->RB = 0;
 	if (dir == 0)
 	{
 		this->left = node;
@@ -50,4 +48,4 @@ RBTree::Node::Node(const ValueType& value, const KeyType& key, bool dir, Node* n
 		this->left = nullptr;
 		this->right = node;
 	}
-}
+}*/
