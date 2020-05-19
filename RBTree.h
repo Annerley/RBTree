@@ -20,7 +20,7 @@ public:
 	{	
 		
 		Node(const ValueType& value, const KeyType& key, Node* parent, Color color = Color::Red);
-	//	~Node();
+		~Node();
 
 		ValueType value;
 		KeyType key;
@@ -45,6 +45,13 @@ public:
 	*/
 	//void AddPair(KeyType key, ValueType value, Node* node); // now probably useless
 	void Add(ValueType value, KeyType key);
+	void Delete(KeyType key)
+	{
+		DeleteKey(key, _head);
+	}
+	void DeleteKey(KeyType key, Node* node = _head);
+
+	void DeleteNode(Node* node);
 	/*
 	void DeleteFirstKey(KeyType key);
 	void DeleteKey(KeyType Key);
@@ -152,6 +159,87 @@ inline void RBTree<KeyType, ValueType>::Add(ValueType value, KeyType key)
 }
 
 template<typename KeyType, typename ValueType>
+inline void RBTree<KeyType, ValueType>::DeleteKey(KeyType key, Node* node)
+{
+	
+	if (node == nullptr) return;
+	if (key > node->key)
+	{
+		DeleteKey(node->right->key, node->right);
+	}
+	if (key < node->key)
+	{
+		DeleteKey(node->left->key, node->left);
+	}
+	if (key == node->key)
+	{
+		DeleteNode(node);
+	}
+}
+
+template<typename KeyType, typename ValueType>
+inline void RBTree<KeyType, ValueType>::DeleteNode(Node* node)
+{
+	//если нет потомков
+	if (node->left == nullptr && node->right == nullptr)
+	{
+		if (node->parent->left == node)
+		{
+			node->parent->left = nullptr;
+		}
+		else node->parent->right = nullptr;
+		delete node;
+		return;
+	}
+
+	//если 1 потомок
+	if (node->left == nullptr)
+	{
+		Node* right = node->right;
+		node->value = right->value;
+		node->left = right->left;
+		node->right = right->right;
+		delete right;
+		return;
+	}
+	else if(node->right == nullptr)
+	{
+		Node* left = node->left;
+		node->value = left->value;//key
+		node->left = left->left;
+		node->right = left->right;
+		delete left;
+		return;
+	}
+
+
+	//если 2 потомка
+
+	Node* n = node;
+	if (n->right->left == nullptr)
+	{
+		n->value = n->right->value;//key??
+
+		Node* buf = n->right->right;
+		delete n->right;
+		n->right = buf;
+	}
+	else
+	{
+		Node* l = n->right;
+		while (l != nullptr)
+		{
+			l = l->left;
+		}
+		l = l->parent;
+		n->value = l->value;  //key??
+		DeleteNode(l);
+	}
+
+	
+}
+
+template<typename KeyType, typename ValueType>
 inline void RBTree<KeyType, ValueType>::TestPrint()
 {
 	/*cout << _head->parent->value << " " << _head->parent->key << " ";
@@ -172,11 +260,25 @@ inline void RBTree<KeyType, ValueType>::TestPrint()
 
 	cout << _head->right->value << " " << _head->right->key << " ";
 	Print_Color(_head->right);
-	cout << endl;/*
+	cout << endl;
+
+	
+
+	cout << _head->right->left->value << " " << _head->right->left->key << " ";
+	Print_Color(_head->right->left);
+	cout << endl;
+
+
+	cout << _head->right->right->value << " " << _head->right->right->key << " ";
+	Print_Color(_head->right->right);
+	cout << endl;
+
 	cout << _head->left->right->value << " " << _head->left->right->key << " ";
 	Print_Color(_head->left->right);
 	cout << endl;
+
 	
+	/*
 	cout << _head->right->left->value << " " << _head->right->left->key << " ";
 	Print_Color(_head->right->left);
 	cout << endl;
@@ -369,4 +471,10 @@ inline RBTree<KeyType, ValueType>::Node::Node(const ValueType& value, const KeyT
 	this->right = nullptr;
 	this->parent = parent;
 
+}
+
+template<typename KeyType, typename ValueType>
+inline RBTree<KeyType, ValueType>::Node::~Node()
+{
+	// ничего не удаляем, т.к. агрегация, надеюсь тут тоже ничего удалять не надо
 }
