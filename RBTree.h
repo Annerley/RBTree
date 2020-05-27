@@ -47,6 +47,14 @@ public:
 	void Add(const ValueType& value, const KeyType& key);
 	void Delete(KeyType key)
 	{
+		while (BooleanFind(key, _head))
+		{
+			DeleteFirstKey(key, _head);
+		}
+	}
+
+	void DeleteFirst(KeyType key)
+	{
 		DeleteFirstKey(key, _head);
 	}
 
@@ -57,6 +65,12 @@ public:
 
 	Node* FindNodeMax();
 	Node* FindNodeMin();
+
+	bool BooleanFind(const KeyType& Key, Node* cur);
+	bool a(KeyType Key)
+	{
+		return BooleanFind(Key, _head);
+	}
 	
 	void Print()
 	{
@@ -103,8 +117,9 @@ private:
 	size_t _size;
 
 	ValueType PrivateFind(const KeyType& Key, Node* cur);
+	
 
-	/*void DeleteKey(KeyType key);*/
+	void DeleteAllKey(KeyType key);
 	void DeleteFirstKey(KeyType key, Node* node = _head);
 	void RebalanceDelete(Node* node);
 
@@ -176,6 +191,15 @@ inline void RBTree<KeyType, ValueType>::Add(const ValueType& value, const KeyTyp
 	
 	}
 
+}
+
+template<typename KeyType, typename ValueType>
+inline void RBTree<KeyType, ValueType>::DeleteAllKey(KeyType key)
+{
+	while (BooleanFind(key))
+	{
+
+	}
 }
 
 template<typename KeyType, typename ValueType>
@@ -304,6 +328,25 @@ inline ValueType RBTree<KeyType, ValueType>::PrivateFind(const KeyType& Key, Nod
 			return cur->value;
 		}
 		
+	}
+}
+
+template<typename KeyType, typename ValueType>
+inline bool RBTree<KeyType, ValueType>::BooleanFind(const KeyType& Key, Node* cur)
+{
+	Node* buf = cur;
+	if (_head != nullptr)
+	{
+		if (cur == nullptr) return false;
+		else if (Key == cur->key)
+			return true;
+		else if (Key < cur->key)
+			return BooleanFind(Key, cur->left);
+		else if (Key >= cur->key)
+			return BooleanFind(Key, cur->right);
+		//return false;
+		
+
 	}
 }
 
