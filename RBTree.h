@@ -35,14 +35,10 @@ public:
 	RBTree();
 	RBTree(KeyType key, ValueType value);
 	
-	/*RBTree(const RBTree& copyTree);
-	RBTree& operator=(const RBTree& copyTree);
-
-	RBTree(RBTree&& moveTree) noexcept;
-	RBTree& operator=(RBTree&& moveTree) noexcept;
+	RBTree(const RBTree& copyTree);
 	
 	~RBTree();
-	*/
+	
 	
 	void Add(const ValueType& value, const KeyType& key);
 	void Delete(KeyType key)
@@ -50,12 +46,14 @@ public:
 		while (BooleanFind(key, _head))
 		{
 			DeleteFirstKey(key, _head);
+			_size--;
 		}
 	}
 
 	void DeleteFirst(KeyType key)
 	{
 		DeleteFirstKey(key, _head);
+		_size--;
 	}
 
 	void DeleteNode(Node* node);
@@ -67,10 +65,6 @@ public:
 	Node* FindNodeMin();
 
 	bool BooleanFind(const KeyType& Key, Node* cur);
-	bool a(KeyType Key)
-	{
-		return BooleanFind(Key, _head);
-	}
 	
 	void Print()
 	{
@@ -119,13 +113,15 @@ private:
 	ValueType PrivateFind(const KeyType& Key, Node* cur);
 	
 
-	void DeleteAllKey(KeyType key);
 	void DeleteFirstKey(KeyType key, Node* node = _head);
 	void RebalanceDelete(Node* node);
 
 	void Print_Color(Node* cur);
 
 	void Rebalance(Node* cur);
+
+	void CopyConstruct(Node* cur, Node* copy);
+	void Destruct(Node* cur);
 };
 
 
@@ -133,12 +129,34 @@ template<typename KeyType, typename ValueType>
 inline RBTree<KeyType, ValueType>::RBTree()
 {
 	_head = nullptr;
+	_size = 0;
 }
 
 template<typename KeyType, typename ValueType>
 inline RBTree<KeyType, ValueType>::RBTree(KeyType key, ValueType value)
 {
 	_head = new Node(value, key, nullptr, Color::Black);
+}
+
+template<typename KeyType, typename ValueType>
+inline RBTree<KeyType, ValueType>::RBTree(const RBTree& copyTree)
+{
+	this->_size = copyTree._size;
+	if (this->_size == 0) {
+		this->_head = nullptr;
+		return;
+	}
+
+	this->_head = new Node(copyTree._head->value, copyTree._head->key, nullptr, copyTree._head->color);
+	
+	CopyConstruct(_head, copyTree._head);
+	
+}
+
+template<typename KeyType, typename ValueType>
+inline RBTree<KeyType, ValueType>::~RBTree()
+{
+	Destruct(_head);
 }
 
 
@@ -190,17 +208,10 @@ inline void RBTree<KeyType, ValueType>::Add(const ValueType& value, const KeyTyp
 		}
 	
 	}
+	_size++;
 
 }
 
-template<typename KeyType, typename ValueType>
-inline void RBTree<KeyType, ValueType>::DeleteAllKey(KeyType key)
-{
-	while (BooleanFind(key))
-	{
-
-	}
-}
 
 template<typename KeyType, typename ValueType>
 inline void RBTree<KeyType, ValueType>::DeleteFirstKey(KeyType key, Node* node)
@@ -407,6 +418,49 @@ template<typename KeyType, typename ValueType>
 inline void RBTree<KeyType, ValueType>::Rebalance(Node* cur)
 {
 	first_add_case(cur);
+}
+
+template<typename KeyType, typename ValueType>
+inline void RBTree<KeyType, ValueType>::CopyConstruct(Node* cur, Node* copy)
+{
+	if (copy != nullptr)
+	{
+		if (copy->left != nullptr)
+		{
+			cur->left = copy->left;
+			cur->right = copy->right;
+			cur->value = copy->value;
+			cur->key = copy->key;
+			cur->color = copy->color;
+			return CopyConstruct(cur->left, copy->left);
+		}
+		else if (copy->right != nullptr)
+		{
+			cur->left = copy->left;
+			cur->right = copy->right;
+			cur->value = copy->value;
+			cur->key = copy->key;
+			cur->color = copy->color;
+			return CopyConstruct(cur->right, copy->right);
+		}
+	}
+}
+
+template<typename KeyType, typename ValueType>
+inline void RBTree<KeyType, ValueType>::Destruct(Node* cur)
+{
+	if (cur != nullptr)
+	{
+		if (cur->left != nullptr)
+		{
+			return Destruct(cur->left);
+		}
+		if (cur->right != nullptr)
+		{
+			return Destruct(cur->right);
+		}
+		delete cur;
+	}
 }
 
 template<typename KeyType, typename ValueType>
