@@ -20,7 +20,10 @@ public:
 	{	
 		
 		Node(const ValueType& value, const KeyType& key, Node* parent, Color color = Color::Red);
+
 		~Node();
+
+
 
 		ValueType value;
 		KeyType key;
@@ -28,51 +31,95 @@ public:
 		Node* left;
 		Node* right;
 		Color color; // 0 - red, 1 - black; 
+
+		//родственники
+		Node* uncle(Node* cur) const;
+		Node* grandpa(Node* cur) const;
+		Node* sibling(Node* cur) const;
 	};
 
 
-
+	//тройка конструкторов
 	RBTree();
-	RBTree(ValueType value, KeyType key);
+	RBTree(const KeyType& key, const ValueType& value);
 	
-	/*RBTree(const RBTree& copyTree);
-	RBTree& operator=(const RBTree& copyTree);
-
-	RBTree(RBTree&& moveTree) noexcept;
-	RBTree& operator=(RBTree&& moveTree) noexcept;
+	RBTree(const RBTree& copyTree);
 	
 	~RBTree();
-	*/
-	//void AddPair(KeyType key, ValueType value, Node* node); // now probably useless
-	void Add(ValueType value, KeyType key);
-	void Delete(KeyType key)
-	{
-		DeleteKey(key, _head);
-	}
-	void DeleteKey(KeyType key, Node* node = _head);
-
-	void DeleteNode(Node* node);
-	void RebalanceDelete(Node* node);
-	/*
-	void DeleteFirstKey(KeyType key);
-
-	size_t Find(KeyType Key);
-
-	Node* FindNodeMax(KeyType Key);
-	Node* FindNodeMin(KeyType Key);*/
 	
-	void TestPrint();
-	void Print()
-	{
-		PrintTree(_head);
-	}
-	void PrintTree(Node* node);
-	void Rebalance(Node* cur);
+	//повороты от текущего узлы
+	void right_rotate(Node* cur);
+	void left_rotate(Node* cur);
 
-	Node* uncle(Node* cur) const;
-	Node* grandpa(Node* cur) const;
-	Node* sibling(Node* cur) const;
 	
+	
+	void add(const ValueType& value, const KeyType& key);
+
+	//удал€ет все узлы с опр key
+	void _delete(const KeyType& key)
+	{
+		while (boolean_find(key, _head))
+		{
+			delete_first_key(key, _head);
+			_size--;
+		}
+	}
+
+	//удал€ет первый узел с опр key
+	void delete_first(const KeyType& key)
+	{
+		delete_first_key(key, _head);
+		_size--;
+	}
+
+	//удал€ет узел
+	void delete_node(Node* node);
+	
+	//поиск по ключу
+	ValueType find(const KeyType& Key);
+
+	//поиск максимальной и минимальной ноды по ключу
+	Node* find_node_max();
+	Node* find_node_min();
+
+	//есть ли элемент с таким key
+	bool boolean_find(const KeyType& Key, Node* cur);
+	
+	//вывод дерева
+	void print()
+	{
+		print_tree(_head);
+	}
+	void print_tree(Node* node);
+
+
+	size_t size() const
+	{
+		return _size;
+	}
+	
+	bool IsEmpty() const
+	{
+		if (_head == nullptr) return true;
+		return false;
+	}
+private:
+
+	Node* _head;
+	size_t _size;
+
+	ValueType private_find(const KeyType& Key, Node* cur);
+	
+
+	void delete_first_key(KeyType key, Node* node = _head);
+	void rebalance_delete(Node* node);
+
+	void print_color(Node* cur);
+
+	void rebalance(Node* cur);
+
+	void copy_construct(Node* cur, Node* copy);
+	void destruct(Node* cur);
 
 	void first_add_case(Node* cur);
 	void second_add_case(Node* cur);
@@ -86,22 +133,6 @@ public:
 	void fourth_delete_case(Node* cur);
 	void fifth_delete_case(Node* cur);
 	void sixth_delete_case(Node* cur);
-
-	
-	void right_rotate(Node* cur);
-	void left_rotate(Node* cur);
-
-	void Print_Color(Node* cur);
-	size_t size()
-	{
-		return _size;
-	}
-	
-	//bool IsEmpty();
-private:
-
-	Node* _head;
-	size_t _size;
 };
 
 
@@ -109,18 +140,40 @@ template<typename KeyType, typename ValueType>
 inline RBTree<KeyType, ValueType>::RBTree()
 {
 	_head = nullptr;
+	_size = 0;
 }
 
 template<typename KeyType, typename ValueType>
-inline RBTree<KeyType, ValueType>::RBTree(ValueType value, KeyType key)
+inline RBTree<KeyType, ValueType>::RBTree(const KeyType& key, const ValueType& value)
 {
 	_head = new Node(value, key, nullptr, Color::Black);
 }
 
+template<typename KeyType, typename ValueType>
+inline RBTree<KeyType, ValueType>::RBTree(const RBTree& copyTree)
+{
+	this->_size = copyTree._size;
+	if (this->_size == 0) {
+		this->_head = nullptr;
+		return;
+	}
+
+	this->_head = new Node(copyTree._head->value, copyTree._head->key, nullptr, copyTree._head->color);
+	
+	copy_construct(_head, copyTree._head);
+	
+}
+
+template<typename KeyType, typename ValueType>
+inline RBTree<KeyType, ValueType>::~RBTree()
+{
+	destruct(_head);
+}
+
 
 
 template<typename KeyType, typename ValueType>
-inline void RBTree<KeyType, ValueType>::Add(ValueType value, KeyType key)
+inline void RBTree<KeyType, ValueType>::add(const ValueType& value, const KeyType& key)
 {
 	if (_head == nullptr)
 	{
@@ -142,7 +195,7 @@ inline void RBTree<KeyType, ValueType>::Add(ValueType value, KeyType key)
 				Buf->left = new Node(key, value, parent);
 				Buf = Buf->left;
 				_size++;
-				Rebalance(Buf);
+				rebalance(Buf);
 				return;
 			}	
 			else
@@ -158,7 +211,7 @@ inline void RBTree<KeyType, ValueType>::Add(ValueType value, KeyType key)
 				Buf->right= new Node(key, value, parent, Color::Red);
 				Buf = Buf->right;
 				_size++;
-				Rebalance(Buf);
+				rebalance(Buf);
 				return;
 			}
 			else 
@@ -166,43 +219,44 @@ inline void RBTree<KeyType, ValueType>::Add(ValueType value, KeyType key)
 		}
 	
 	}
+	_size++;
 
 }
 
+
 template<typename KeyType, typename ValueType>
-inline void RBTree<KeyType, ValueType>::DeleteKey(KeyType key, Node* node)
+inline void RBTree<KeyType, ValueType>::delete_first_key(KeyType key, Node* node)
 {
 	
 	if (node == nullptr) return;
 	if (key > node->key)
 	{
-		DeleteKey(key, node->right);
+		delete_first_key(key, node->right);
 	}
 	if (key < node->key)
 	{
-		DeleteKey(key, node->left);
+		delete_first_key(key, node->left);
 	}
 	if (key == node->key)
 	{
-		DeleteNode(node);
+		delete_node(node);
 	}
 }
 
 template<typename KeyType, typename ValueType>
-inline void RBTree<KeyType, ValueType>::DeleteNode(Node* node)
+inline void RBTree<KeyType, ValueType>::delete_node(Node* node)
 {
 	//если нет потомков
 	if (node->left == nullptr && node->right == nullptr)
 	{
-		
-		
-		
+
+		rebalance_delete(node);
 		if (node->parent->left == node)
 		{
 			node->parent->left = nullptr;
 		}
 		else node->parent->right = nullptr;
-		RebalanceDelete(node);
+		
 		delete node;
 		
 		return;
@@ -216,18 +270,18 @@ inline void RBTree<KeyType, ValueType>::DeleteNode(Node* node)
 		node->key = right->key;
 		node->left = right->left;
 		node->right = right->right;
-		RebalanceDelete(right);
+		rebalance_delete(right);
 		delete right;
 		return;
 	}
 	else if(node->right == nullptr)
 	{
 		Node* left = node->left;
-		node->value = left->value;//key
+		node->value = left->value;
 		node->key = left->key;
 		node->left = left->left;
 		node->right = left->right;
-		RebalanceDelete(left);
+		rebalance_delete(left);
 		delete left;
 		return;
 	}
@@ -241,7 +295,7 @@ inline void RBTree<KeyType, ValueType>::DeleteNode(Node* node)
 		n->value = n->right->value;
 		n->key = n->right->key;
 		Node* buf = n->right->right;
-		RebalanceDelete(n->right);
+		rebalance_delete(n->right);
 		delete n->right;
 		n->right = buf;
 		return;
@@ -256,41 +310,113 @@ inline void RBTree<KeyType, ValueType>::DeleteNode(Node* node)
 	
 		n->value = l->value;
 		n->key = l->key;
-		//RebalanceDelete(l);
-		DeleteNode(l);
+		
+		delete_node(l);
 	}
 
 	
 }
 
 template<typename KeyType, typename ValueType>
-inline void RBTree<KeyType, ValueType>::RebalanceDelete(Node* node)
+inline void RBTree<KeyType, ValueType>::rebalance_delete(Node* node)
 {
 	if (node->color == Color::Black && node->right == nullptr && node->left == nullptr)
 	{
 		first_delete_case(node);
-		//delete node;
+		
 	}
 
 }
 
-
+template<typename KeyType, typename ValueType>
+inline ValueType RBTree<KeyType, ValueType>::private_find(const KeyType& Key, Node* cur)
+{
+	if (_head != nullptr)
+	{
+		
+		if (Key != cur->key)
+		{
+			if (cur->left != nullptr)
+			{
+				private_find(Key, cur->left);
+			}
+			if (cur->right != nullptr)
+			{
+				private_find(Key, cur->right);
+			}
+		}
+		else if (Key == cur->key)
+		{
+			return cur->value;
+		}
+		
+	}
+}
 
 template<typename KeyType, typename ValueType>
-inline void RBTree<KeyType, ValueType>::PrintTree(Node* node)
+inline bool RBTree<KeyType, ValueType>::boolean_find(const KeyType& Key, Node* cur)
+{
+	Node* buf = cur;
+	if (_head != nullptr)
+	{
+		if (cur == nullptr) return false;
+		else if (Key == cur->key)
+			return true;
+		else if (Key < cur->key)
+			return boolean_find(Key, cur->left);
+		else if (Key >= cur->key)
+			return boolean_find(Key, cur->right);
+		//return false;
+		
+
+	}
+}
+
+template<typename KeyType, typename ValueType>
+inline ValueType RBTree<KeyType, ValueType>::find(const KeyType& Key)
+{
+	return private_find(Key, _head);
+}
+
+template<typename KeyType, typename ValueType>
+inline typename RBTree<KeyType, ValueType>::Node* RBTree<KeyType, ValueType>::find_node_max()
+{
+	Node* buf = _head;
+	while (buf->right)
+	{
+		buf = buf->right;
+	}
+	cout << buf->value;
+	return buf;
+}
+
+template<typename KeyType, typename ValueType>
+inline typename RBTree<KeyType, ValueType>::Node* RBTree<KeyType, ValueType>::find_node_min()
+{
+	Node* buf = _head;
+	while (buf->left)
+	{
+		buf = buf->left;
+	}
+	cout << buf->value;
+	return buf;
+}
+
+template<typename KeyType, typename ValueType>
+inline void RBTree<KeyType, ValueType>::print_tree(Node* node)
 {
 	if (_head != nullptr)
 	{
 		cout << node->value << " " << node->key;
-		Print_Color(node);
+		print_color(node);
 		cout << endl;
 		if (node->left != nullptr)
 		{
-			PrintTree(node->left);
+			print_tree(node->left);
 		}
 		if (node->right != nullptr)
 		{
-			PrintTree(node->right);
+			print_tree(node->right);
 		}
 	}
 
@@ -300,13 +426,53 @@ inline void RBTree<KeyType, ValueType>::PrintTree(Node* node)
 
 
 template<typename KeyType, typename ValueType>
-inline void RBTree<KeyType, ValueType>::Rebalance(Node* cur)
+inline void RBTree<KeyType, ValueType>::rebalance(Node* cur)
 {
 	first_add_case(cur);
 }
 
 template<typename KeyType, typename ValueType>
-inline typename RBTree<KeyType, ValueType>::Node* RBTree<KeyType, ValueType>::uncle(Node* cur) const
+inline void RBTree<KeyType, ValueType>::copy_construct(Node* cur, Node* copy)
+{
+	if (copy != nullptr)
+	{
+		cur->left = copy->left;
+		cur->right = copy->right;
+		cur->value = copy->value;
+		cur->key = copy->key;
+		cur->color = copy->color;
+		cur->parent = copy->parent;
+		if (copy->left != nullptr)
+		{
+			return copy_construct(cur->left, copy->left);
+		}
+		if (copy->right != nullptr)
+		{
+			return copy_construct(cur->right, copy->right);
+		}
+	}
+}
+
+template<typename KeyType, typename ValueType>
+inline void RBTree<KeyType, ValueType>::destruct(Node* cur)
+{
+	if (cur != nullptr)
+	{
+		if (cur->left != nullptr)
+		{
+			return destruct(cur->left);
+		}
+		if (cur->right != nullptr)
+		{
+			return destruct(cur->right);
+		}
+		delete cur;
+	}
+	
+}
+
+template<typename KeyType, typename ValueType>
+inline typename RBTree<KeyType, ValueType>::Node* RBTree<KeyType, ValueType>::Node::uncle(Node* cur) const
 {
 	Node* g = grandpa(cur);
 	if(!g)
@@ -321,7 +487,7 @@ inline typename RBTree<KeyType, ValueType>::Node* RBTree<KeyType, ValueType>::un
 }
 
 template<typename KeyType, typename ValueType>
-inline typename RBTree<KeyType, ValueType>::Node* RBTree<KeyType, ValueType>::grandpa(Node* cur) const
+inline typename RBTree<KeyType, ValueType>::Node* RBTree<KeyType, ValueType>::Node::grandpa(Node* cur) const
 {
 	if (!cur || !cur->parent)
 	{
@@ -331,7 +497,7 @@ inline typename RBTree<KeyType, ValueType>::Node* RBTree<KeyType, ValueType>::gr
 }
 
 template<typename KeyType, typename ValueType>
-inline typename RBTree<KeyType, ValueType>::Node* RBTree<KeyType, ValueType>::sibling(Node* cur) const
+inline typename RBTree<KeyType, ValueType>::Node* RBTree<KeyType, ValueType>::Node::sibling(Node* cur) const
 {
 	Node* g = grandpa(cur);
 	if (!cur || !cur->parent)
@@ -371,13 +537,13 @@ inline void RBTree<KeyType, ValueType>::second_add_case(Node* cur)
 template<typename KeyType, typename ValueType>
 inline void RBTree<KeyType, ValueType>::third_add_case(Node* cur)
 {
-	Node* u = uncle(cur);
+	Node* u = cur->uncle(cur);
 
 		if ((u != nullptr) && (u->color == Color::Red))
 		{
 			cur->parent->color = Color::Black;
 			u->color = Color::Black;
-			Node* g = grandpa(cur);
+			Node* g = cur->grandpa(cur);
 			g->color = Color::Red;
 			first_add_case(g);
 		}
@@ -391,7 +557,7 @@ inline void RBTree<KeyType, ValueType>::third_add_case(Node* cur)
 template<typename KeyType, typename ValueType>
 inline void RBTree<KeyType, ValueType>::fourth_add_case(Node* cur)
 {	
-		Node* g = grandpa(cur);		
+		Node* g = cur->grandpa(cur);
 		Node* p = cur->parent;
 
 			if ((cur == cur->parent->right) && (cur->parent == g->left ))
@@ -410,7 +576,7 @@ inline void RBTree<KeyType, ValueType>::fourth_add_case(Node* cur)
 template<typename KeyType, typename ValueType>
 inline void RBTree<KeyType, ValueType>::fifth_add_case(Node* cur)
 {
-	Node* g = g = grandpa(cur);
+	Node* g = g = cur->grandpa(cur);
 	cur->parent->color = Color::Black;
 	g->color = Color::Red;
 	if ((cur == cur->parent->left) && (cur->parent == g->left))
@@ -436,7 +602,7 @@ inline void RBTree<KeyType, ValueType>::first_delete_case(Node* cur)
 template<typename KeyType, typename ValueType>
 inline void RBTree<KeyType, ValueType>::second_delete_case(Node* cur)
 {
-	Node* s = sibling(cur);
+	Node* s = cur->sibling(cur);
 	Node* p = cur->parent;
 	if (s->color == Color::Red)
 	{
@@ -456,7 +622,7 @@ inline void RBTree<KeyType, ValueType>::second_delete_case(Node* cur)
 template<typename KeyType, typename ValueType>
 inline void RBTree<KeyType, ValueType>::third_delete_case(Node* cur)
 {
-	Node* s = sibling(cur);
+	Node* s = cur->sibling(cur);
 	
 	if ((cur->parent->color == Color::Black) && (s->color == Color::Black) &&(!s->left || s->left->color==Color::Black) && (!s->right || s->right->color == Color::Black))
 	{
@@ -469,7 +635,7 @@ inline void RBTree<KeyType, ValueType>::third_delete_case(Node* cur)
 template<typename KeyType, typename ValueType>
 inline void RBTree<KeyType, ValueType>::fourth_delete_case(Node* cur)
 {
-	Node* s = sibling(cur);
+	Node* s = cur->sibling(cur);
 	if (cur->parent->color == Color::Red && s->color == Color::Black && (!s->left || s->left->color == Color::Black) && (!s->right || s->right->color == Color::Black))
 	{
 		s->color = Color::Red;
@@ -481,7 +647,7 @@ inline void RBTree<KeyType, ValueType>::fourth_delete_case(Node* cur)
 template<typename KeyType, typename ValueType>
 inline void RBTree<KeyType, ValueType>::fifth_delete_case(Node* cur)
 {
-	Node* s = sibling(cur);
+	Node* s = cur->sibling(cur);
 	if (s->color == Color::Black)
 	{
 		if (cur->parent->left == cur && (!s->left || s->left->color == Color::Red) && (!s->right || s->right->color == Color::Black))
@@ -504,12 +670,9 @@ inline void RBTree<KeyType, ValueType>::fifth_delete_case(Node* cur)
 template<typename KeyType, typename ValueType>
 inline void RBTree<KeyType, ValueType>::sixth_delete_case(Node* cur)
 {
-	this->Print();
-	Node* s = sibling(cur);
+	Node* s = cur->sibling(cur);
 	s->color = cur->parent->color;
 	cur->parent->color = Color::Black;
-	cout << cur->parent->right->value;
-	cout << cur->parent->left->value;
 	if (cur->parent->left == cur)
 	{
 		s->right->color = Color::Black;
@@ -525,12 +688,13 @@ inline void RBTree<KeyType, ValueType>::sixth_delete_case(Node* cur)
 template<typename KeyType, typename ValueType>
 inline void RBTree<KeyType, ValueType>::right_rotate(Node* cur)
 {
-	
 	Node* buf = cur->left;
 	
 	if (cur->parent == nullptr)
 	{
 		_head = buf;
+		_head->left = buf->left;
+		_head->right = buf->right;
 	}
 	buf->parent = cur->parent;
 	if (buf->parent == _head) _head = buf->parent;
@@ -547,7 +711,7 @@ inline void RBTree<KeyType, ValueType>::right_rotate(Node* cur)
 
 	cur->parent = buf;
 	buf->right = cur;
-	this->Print();
+
 }
 
 template<typename KeyType, typename ValueType>
@@ -557,6 +721,8 @@ inline void RBTree<KeyType, ValueType>::left_rotate(Node* cur)
 	if (cur->parent == nullptr)
 	{
 		_head = buf;
+		_head->left = buf->left;
+		_head->right = buf->right;
 	}
 	buf->parent = cur->parent; 
 
@@ -573,11 +739,13 @@ inline void RBTree<KeyType, ValueType>::left_rotate(Node* cur)
 
 	cur->parent = buf;
 	buf->left = cur;
-	this->Print();
+	
 }
 
+
+
 template<typename KeyType, typename ValueType>
-inline void RBTree<KeyType, ValueType>::Print_Color(Node* cur)
+inline void RBTree<KeyType, ValueType>::print_color(Node* cur)
 {
 	if (cur->color == Color::Red)
 		std::cout << "Red";
@@ -600,6 +768,8 @@ inline RBTree<KeyType, ValueType>::Node::Node(const ValueType& value, const KeyT
 	this->parent = parent;
 
 }
+
+
 
 template<typename KeyType, typename ValueType>
 inline RBTree<KeyType, ValueType>::Node::~Node()
