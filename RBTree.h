@@ -53,7 +53,7 @@ public:
 
 	
 	
-	void add(const ValueType& value, const KeyType& key);
+	void add(const KeyType& key, const ValueType& value);
 
 	//удаляет все узлы с опр key
 	void _delete(const KeyType& key)
@@ -111,7 +111,7 @@ private:
 	ValueType private_find(const KeyType& Key, Node* cur);
 	
 
-	void delete_first_key(KeyType key, Node* node = _head);
+	void delete_first_key(KeyType key, Node* node);
 	void rebalance_delete(Node* node);
 
 	void print_color(Node* cur);
@@ -173,7 +173,7 @@ inline RBTree<KeyType, ValueType>::~RBTree()
 
 
 template<typename KeyType, typename ValueType>
-inline void RBTree<KeyType, ValueType>::add(const ValueType& value, const KeyType& key)
+inline void RBTree<KeyType, ValueType>::add(const KeyType& key, const ValueType& value)
 {
 	if (_head == nullptr)
 	{
