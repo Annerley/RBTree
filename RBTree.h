@@ -161,7 +161,6 @@ inline RBTree<KeyType, ValueType>::RBTree(const RBTree& copyTree)
 	this->_head = new Node(copyTree._head->value, copyTree._head->key, nullptr, copyTree._head->color);
 	
 	copy_construct(_head, copyTree._head);
-	
 }
 
 template<typename KeyType, typename ValueType>
@@ -436,12 +435,9 @@ inline void RBTree<KeyType, ValueType>::copy_construct(Node* cur, Node* copy)
 {
 	if (copy != nullptr)
 	{
+		cur = new Node(copy->value, copy->key, copy->parent, copy->color);
 		cur->left = copy->left;
 		cur->right = copy->right;
-		cur->value = copy->value;
-		cur->key = copy->key;
-		cur->color = copy->color;
-		cur->parent = copy->parent;
 		if (copy->left != nullptr)
 		{
 			return copy_construct(cur->left, copy->left);
@@ -451,6 +447,7 @@ inline void RBTree<KeyType, ValueType>::copy_construct(Node* cur, Node* copy)
 			return copy_construct(cur->right, copy->right);
 		}
 	}
+
 }
 
 template<typename KeyType, typename ValueType>
